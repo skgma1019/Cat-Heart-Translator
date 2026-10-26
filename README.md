@@ -29,4 +29,4 @@ SVM의 `predict`와 `predict_proba` 순위가 다를 수 있으므로 대표 결
 
 `mobile/`은 Expo React Native 설치형 앱입니다. 파일 선택·미리 듣기·분석 요청·결과 표시를 구현했습니다. 앱 빌드에는 공개 HTTPS 모델 API가 필요합니다. 로컬 `localhost` API는 휴대폰에서 접근할 수 없습니다.
 
-API를 배포한 뒤 `EXPO_PUBLIC_API_URL=https://<API 호스트>`를 지정하여 `cd mobile && npm ci && npm run typecheck`로 확인합니다. APK는 Expo 계정에 로그인한 뒤 `eas build --platform android --profile preview`로 생성합니다. 공개 배포용 AAB는 `--profile production`을 사용합니다. 앱의 서버 주소는 빌드에 포함되므로 API 주소를 바꾸면 재빌드해야 합니다.
+API를 배포한 뒤 기본 API 주소는 `https://cat-heart-translator-api.onrender.com`입니다. 다른 서버를 사용할 때만 `EXPO_PUBLIC_API_URL`을 지정하여 `cd mobile && npm ci && npm run typecheck`로 확인합니다. APK는 Expo 계정에 로그인한 뒤 `eas build --platform android --profile preview`로 생성합니다. 공개 배포용 AAB는 `--profile production`을 사용합니다. 앱의 서버 주소는 빌드에 포함되므로 API 주소를 바꾸면 재빌드해야 합니다.
