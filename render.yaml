@@ -7,5 +7,9 @@ services:
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: NUMBA_NUM_THREADS
+        value: "1"
       - key: PYTHON_VERSION
         value: 3.12.14

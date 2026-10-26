@@ -22,6 +22,17 @@ async def lifespan(app):
     model = joblib.load(ROOT / 'catmeows_model.joblib')
     if list(model.classes_) != META['classes'] or model.n_features_in_ != META['feature_count']:
         raise RuntimeError('모델 클래스 또는 특징 수 불일치')
+    # Prepare librosa's first-call work before the service is marked healthy.
+    warmup_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as warmup:
+            warmup_path = warmup.name
+            sf.write(warmup, np.sin(2 * np.pi * 440 * np.arange(4000) / 8000).astype('float32'), 8000)
+        warmup_features = extract_features(warmup_path)
+        model.predict_proba(warmup_features.reshape(1, -1))
+    finally:
+        if warmup_path:
+            os.unlink(warmup_path)
     yield
 
 app = FastAPI(lifespan=lifespan)
