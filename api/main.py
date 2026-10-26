@@ -27,6 +27,10 @@ async def lifespan(app):
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=['http://localhost:3000', 'http://127.0.0.1:3000'], allow_methods=['GET', 'POST'], allow_headers=['*'])
 
+@app.get('/')
+def home():
+    return {'service': '냥심 번역기 모델 API', 'status': 'ok', 'health': '/health', 'docs': '/docs'}
+
 @app.get('/health')
 def health():
     return {'status': 'ok', 'features': model.n_features_in_, 'classes': list(model.classes_)}
