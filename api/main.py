@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 import json
+import logging
 import os
 import tempfile
 
@@ -15,6 +16,7 @@ ROOT = Path(__file__).parent
 META = json.loads((ROOT / 'model_metadata.json').read_text())
 LABELS = {'B': '빗질', 'F': '먹이 기다림', 'I': '낯선 환경에서 혼자 있음'}
 model = None
+logger = logging.getLogger("uvicorn.error")
 
 @asynccontextmanager
 async def lifespan(app):
@@ -58,21 +60,26 @@ async def analyze(file: UploadFile = File(...)):
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
             path = tmp.name
             tmp.write(data)
+        logger.info('analyze: validating WAV')
         info = sf.info(path)
         if info.duration < 0.5 or info.duration > 30:
             raise HTTPException(400, '녹음 길이는 0.5~30초여야 합니다.')
         audio, _ = sf.read(path, dtype='float32')
         if not np.isfinite(audio).all() or np.max(np.abs(audio)) < 0.0001:
             raise HTTPException(400, '무음 파일은 분석할 수 없습니다.')
+        logger.info('analyze: extracting features')
         features = extract_features(path)
+        logger.info('analyze: features extracted')
         if len(features) != META['feature_count'] or not np.isfinite(features).all():
             raise HTTPException(400, '오디오 특징을 추출할 수 없습니다.')
         probabilities = model.predict_proba(features.reshape(1, -1))[0]
+        logger.info('analyze: prediction complete')
         index = int(np.argmax(probabilities))
         return {'result': LABELS[model.classes_[index]], 'probabilities': [{'code': code, 'label': LABELS[code], 'probability': float(probabilities[i])} for i, code in enumerate(model.classes_)]}
     except HTTPException:
         raise
     except Exception:
+        logger.exception('analyze: failed')
         raise HTTPException(400, '손상되었거나 지원하지 않는 WAV 파일입니다.')
     finally:
         if path:
