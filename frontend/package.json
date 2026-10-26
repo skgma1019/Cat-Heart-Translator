@@ -1,0 +1,1 @@
+{"scripts":{"dev":"next dev","build":"next build","typecheck":"tsc --noEmit"},"dependencies":{"next":"15.5.12","react":"19.1.1","react-dom":"19.1.1"},"devDependencies":{"@types/node":"^22","@types/react":"^19","@types/react-dom":"^19","typescript":"^5","tailwindcss":"^4","@tailwindcss/postcss":"^4"}}

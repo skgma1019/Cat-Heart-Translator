@@ -1,0 +1,24 @@
+{
+  "model": "SVM",
+  "classes": [
+    "B",
+    "F",
+    "I"
+  ],
+  "feature_count": 88,
+  "evaluation": "21 cats, 440 recordings, GroupKFold(5), model selection CV",
+  "metrics": {
+    "accuracy": 0.5954545454545455,
+    "balanced_accuracy": 0.5199652952588087,
+    "macro_f1": 0.5168616565079905
+  },
+  "versions": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.6.1",
+    "librosa": "0.11.0",
+    "soundfile": "0.13.1",
+    "joblib": "1.6.0"
+  },
+  "source": "https://zenodo.org/records/4008297"
+}
