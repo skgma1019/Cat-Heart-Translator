@@ -3,3 +3,9 @@ frontend/.next/
 frontend/*.tsbuildinfo
 api/__pycache__/
 *.pyc
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/*.tsbuildinfo
+frontend/.vercel/
+mobile/.vercel/

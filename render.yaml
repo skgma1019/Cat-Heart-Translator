@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: cat-heart-translator-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r api/requirements.txt fastapi uvicorn python-multipart
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
