@@ -13,7 +13,7 @@ python3 -m venv .venv
 .venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000
 ```
 
-다른 터미널에서 `cd frontend && npm run dev`. 브라우저에서 `http://localhost:3000`을 엽니다. API 주소를 바꾸려면 프론트 실행 시 `NEXT_PUBLIC_API_URL`을 지정합니다.
+다른 터미널에서 `cd frontend && npm run dev`. 브라우저에서 `http://localhost:3000`을 엽니다. 프론트 서버가 API 요청을 내부적으로 전달합니다. API 주소를 바꾸려면 프론트 실행 시 `API_INTERNAL_URL`을 지정합니다. 클라우드 미리보기에서는 3000번 포트만 열면 됩니다.
 
 WAV 파일만 지원합니다. 크기 0바이트 초과~10MB, 길이 0.5~30초이며 무음·손상 파일은 거부합니다. 임시 파일은 요청 후 삭제합니다. 모델은 서버 시작 시 한 번 로드하며 제공된 88개 특징을 그대로 사용합니다. StandardScaler는 모델 Pipeline에 포함되어 있습니다.
 
