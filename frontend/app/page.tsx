@@ -26,8 +26,8 @@ export default function Home() {
   function choose(next?: File) {
     setResult(null); setError('');
     if (!next) { setFile(null); return; }
-    if (!next.name.toLowerCase().endsWith('.wav') || next.size === 0 || next.size > 10 * 1024 * 1024) {
-      setFile(null); setError('0바이트 초과, 10MB 이하의 WAV 파일을 선택해 주세요.'); return;
+    if (!/\.(wav|mp3)$/i.test(next.name) || next.size === 0 || next.size > 10 * 1024 * 1024) {
+      setFile(null); setError('0바이트 초과, 10MB 이하의 WAV 또는 MP3 파일을 선택해 주세요.'); return;
     }
     setFile(next);
   }
@@ -71,7 +71,7 @@ export default function Home() {
     <header className="mb-10"><p className="mb-3 font-bold tracking-widest text-[#a4664f]">CAT SOUND LAB</p><h1 className="text-5xl font-bold sm:text-6xl">냥심 번역기</h1><p className="mt-5 text-xl text-[#6f6258]">고양이 울음 상황 분석</p><p className="mt-3 leading-7 text-[#6f6258]">녹음된 울음을 빗질, 먹이 기다림, 낯선 환경에서 혼자 있음의 세 상황과 비교합니다.</p></header>
     <section className="rounded-3xl border border-[#eadbc9] bg-white p-6 shadow-sm sm:p-9">
       <h2 className="mb-4 text-2xl font-bold">울음 입력</h2>
-      <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-[#cfaa8d] bg-[#fffaf4] p-8 text-center"><span className="block text-lg font-semibold">{file ? file.name : 'WAV 파일 선택'}</span><span className="mt-2 block text-sm text-[#76675c]">최대 10MB · 길이 0.5~30초 · 무음 파일 제외</span><input className="sr-only" type="file" accept=".wav,audio/wav" disabled={recording || loading} onChange={event => choose(event.target.files?.[0])} /></label>
+      <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-[#cfaa8d] bg-[#fffaf4] p-8 text-center"><span className="block text-lg font-semibold">{file ? file.name : 'WAV 또는 MP3 파일 선택'}</span><span className="mt-2 block text-sm text-[#76675c]">최대 10MB · 길이 0.5~30초 · 무음 파일 제외</span><input className="sr-only" type="file" accept=".wav,.mp3,audio/wav,audio/mpeg" disabled={recording || loading} onChange={event => choose(event.target.files?.[0])} /></label>
       <p className="my-5 text-center text-sm text-[#76675c]">또는</p>
       <button type="button" disabled={loading} onClick={recording ? stopRecording : startRecording} className="w-full rounded-xl border border-[#b58a72] px-6 py-4 font-bold text-[#6c4435] disabled:opacity-50">{recording ? `■ 녹음 끝내기 · ${seconds}초` : '● 마이크로 녹음하기'}</button>
       {recording && <p role="status" className="mt-3 text-center text-sm text-[#9f654e]">녹음 중입니다. 최대 29초에 자동 종료됩니다.</p>}

@@ -50,18 +50,21 @@ def health():
 
 @app.post('/analyze')
 async def analyze(file: UploadFile = File(...)):
-    if not file.filename or not file.filename.lower().endswith('.wav'):
-        raise HTTPException(400, 'WAV 파일만 업로드할 수 있습니다.')
+    suffix = Path(file.filename or '').suffix.lower()
+    if suffix not in {'.wav', '.mp3'}:
+        raise HTTPException(400, 'WAV 또는 MP3 파일만 업로드할 수 있습니다.')
     data = await file.read(10 * 1024 * 1024 + 1)
     if not data or len(data) > 10 * 1024 * 1024:
         raise HTTPException(400, '파일은 0바이트 초과, 10MB 이하여야 합니다.')
     path = None
     try:
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             path = tmp.name
             tmp.write(data)
-        logger.info('analyze: validating WAV')
+        logger.info('analyze: validating audio')
         info = sf.info(path)
+        if info.format != {'.wav': 'WAV', '.mp3': 'MP3'}[suffix]:
+            raise HTTPException(400, '파일 확장자와 실제 오디오 형식이 일치하지 않습니다.')
         if info.duration < 0.5 or info.duration > 30:
             raise HTTPException(400, '녹음 길이는 0.5~30초여야 합니다.')
         audio, _ = sf.read(path, dtype='float32')
@@ -80,7 +83,7 @@ async def analyze(file: UploadFile = File(...)):
         raise
     except Exception:
         logger.exception('analyze: failed')
-        raise HTTPException(400, '손상되었거나 지원하지 않는 WAV 파일입니다.')
+        raise HTTPException(400, '손상되었거나 지원하지 않는 오디오 파일입니다.')
     finally:
         if path:
             os.unlink(path)

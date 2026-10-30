@@ -15,7 +15,7 @@ python3 -m venv .venv
 
 다른 터미널에서 `cd frontend && npm run dev`. 브라우저에서 `http://localhost:3000`을 엽니다. 프론트 서버가 API 요청을 내부적으로 전달합니다. API 주소를 바꾸려면 프론트 실행 시 `API_INTERNAL_URL`을 지정합니다. 클라우드 미리보기에서는 3000번 포트만 열면 됩니다.
 
-WAV 파일만 지원합니다. 크기 0바이트 초과~10MB, 길이 0.5~30초이며 무음·손상 파일은 거부합니다. 임시 파일은 요청 후 삭제합니다. 모델은 서버 시작 시 한 번 로드하며 제공된 88개 특징을 그대로 사용합니다. StandardScaler는 모델 Pipeline에 포함되어 있습니다.
+웹앱과 모델 API는 WAV 및 MP3 파일을 지원합니다. Android APK는 기존 WAV 입력을 유지합니다. 크기 0바이트 초과~10MB, 길이 0.5~30초이며 무음·손상 파일은 거부합니다. 임시 파일은 요청 후 삭제합니다. 모델은 서버 시작 시 한 번 로드하며 제공된 88개 특징을 그대로 사용합니다. StandardScaler는 모델 Pipeline에 포함되어 있습니다.
 
 SVM의 `predict`와 `predict_proba` 순위가 다를 수 있으므로 대표 결과는 `predict_proba`의 최고값으로 선택합니다. 표시한 백분율은 세 상황에 대한 모델 추정 확률이며 정확도가 아닙니다. 모델은 고양이 울음 여부를 판별하지 않습니다. 평가 데이터는 21마리·440개 녹음, GroupKFold(5), 정확도 약 59.5%, Macro F1 약 0.517입니다.
 
@@ -33,7 +33,7 @@ API를 배포한 뒤 기본 API 주소는 `https://cat-heart-translator-api.onre
 
 ## 3회차 웹앱 시연
 
-`frontend/`에서 WAV 업로드 또는 브라우저 마이크 녹음을 선택합니다. 녹음은 브라우저의 `MediaRecorder` 출력(WebM/Opus 등)을 `AudioContext.decodeAudioData()`로 읽고, 모노 16비트 PCM WAV로 변환한 뒤 기존 WAV API에 보냅니다. 마이크 사용은 HTTPS 또는 localhost와 브라우저 권한이 필요합니다. 녹음은 29초에 자동 종료되며, 업로드 제한은 10MB·0.5~30초입니다. 미리 듣기 후 **분석하기**를 누르면 서버가 제공된 `extract_features()`로 88개 특징을 추출하고, 저장된 Pipeline의 `predict_proba()`를 호출합니다. 대표 상황은 최고 추정 확률의 클래스이며 막대그래프의 세 확률과 일치합니다. **다시 분석하기**로 새 입력을 선택할 수 있습니다.
+`frontend/`에서 WAV/MP3 업로드 또는 브라우저 마이크 녹음을 선택합니다. 녹음은 브라우저의 `MediaRecorder` 출력(WebM/Opus 등)을 `AudioContext.decodeAudioData()`로 읽고, 모노 16비트 PCM WAV로 변환한 뒤 오디오 API에 보냅니다. 마이크 사용은 HTTPS 또는 localhost와 브라우저 권한이 필요합니다. 녹음은 29초에 자동 종료되며, 두 파일 형식의 업로드 제한은 10MB·0.5~30초입니다. 실제 형식과 확장자가 다르면 거부합니다. MP3는 제공된 soundfile/libsndfile와 librosa 버전으로 디코딩합니다. 미리 듣기 후 **분석하기**를 누르면 서버가 제공된 `extract_features()`로 88개 특징을 추출하고, 저장된 Pipeline의 `predict_proba()`를 호출합니다. 대표 상황은 최고 추정 확률의 클래스이며 막대그래프의 세 확률과 일치합니다. **다시 분석하기**로 새 입력을 선택할 수 있습니다.
 
 과제의 일반적인 입력 예시에 이미지 업로드가 포함되어 있지만, 이 모델은 오디오 특징 88개만 받아들이므로 이미지 업로드는 제공하지 않습니다. 감정이나 말의 번역, 고양이 울음 여부 판별 기능도 제공하지 않습니다.
 
@@ -44,3 +44,5 @@ API를 배포한 뒤 기본 API 주소는 `https://cat-heart-translator-api.onre
 ## 제출 영상
 
 [웹앱 시연 영상 다운로드 (.mp4, 67초)](https://github.com/skgma1019/Cat-Heart-Translator/raw/refs/heads/main/demo/webapp-demo.mp4). 브라우저 테스트 마이크 녹음과 데이터셋 WAV 업로드, 미리 듣기, 서버 모델 분석, B/F/I 확률 막대그래프, 다시 분석하기를 보여줍니다. 영상의 마이크 입력은 Chromium 테스트 장치로 만든 녹음이며, 업로드한 WAV는 제공된 데이터셋 파일입니다. 영상 녹화는 자동화된 브라우저에서 진행했고 실제 사용자의 마이크나 휴대폰 브라우저 녹음은 영상에 포함되지 않습니다.
+
+MP3 추가 검증: 데이터셋 WAV를 MP3로 인코딩해 API 분석 HTTP 200과 결과 출력을 확인했습니다. WAV를 `.mp3`로 이름만 바꾼 파일은 HTTP 400으로 거부합니다. MP3는 손실 압축이므로 같은 원본 WAV와 모델 추정 확률이 달라질 수 있습니다.
