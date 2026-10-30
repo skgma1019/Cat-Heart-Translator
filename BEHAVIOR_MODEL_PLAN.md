@@ -27,3 +27,15 @@ py -3.12 "$env:USERPROFILE\Downloads\build_cat_behavior_manifest.py" --root "E:\
 ```
 
 정상 기대치는 `Clips: 24244; problems: 0`이다. 다운로드 폴더의 `cat-behavior-manifest-report.json`을 공유하면 오류와 예외를 확인할 수 있다. CSV는 현지 학습 입력으로 보관한다. 이 단계는 모든 JPG를 디코딩하지 않으며 ZIP 내부 경로와 표본 헤더만 검증한다. 별도로 제공된 전체 ZIP 내부 목록의 CAT JPG **1,866,408개**가 스크립트의 프레임 파일명 규칙과 맞는 것은 클라우드에서 검증했다.
+
+사용자가 Windows에서 매니페스트 생성을 실행해 `Clips: 24244; problems: 0`을 확인했다. 이에 따라 소규모 GPU 파일럿 학습 코드를 `tools/train_cat_behavior_pilot.py`에 준비했다. 이 코드는 각 코드에서 최대 Training 100개, Validation 30개 클립을 고정 시드로 뽑고, ZIP에서 클립당 8프레임을 디코딩한다. 사전학습 MobileNetV3 Small을 고정한 뒤 프레임 특징 평균과 선형 분류기를 학습한다. 샘플 수가 작은 **기본 가능성 검사**이며, 시간대별 행동 모델이나 최종 성능으로 해석하지 않는다. 결과 JSON에는 Validation 정확도, macro F1, 클래스별 재현율과 혼동행렬이 기록된다. 학습된 체크포인트도 `Downloads\cat-behavior-pilot`에 저장된다.
+
+Windows PowerShell에서 Python 3.12용 CUDA PyTorch와 이미지 의존성을 설치한 뒤 실행한다. NVIDIA 드라이버가 오래됐다면 설치 전에 업데이트해야 할 수 있다. 기존 울음 모델과 원본 데이터에는 영향을 주지 않는다.
+
+```powershell
+py -3.12 -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+py -3.12 -m pip install pillow numpy
+py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_pilot.py" --root "E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상"
+```
+
+첫 실행 시 사전학습 인코더 가중치를 내려받는다. CUDA가 확인되지 않으면 훈련을 시작하지 않고 오류를 낸다. 클라우드에서는 원본 영상 ZIP과 RTX 4060이 없으므로 전체 학습을 실행하지 못했다. 파일럿 결과를 확인한 뒤 학습 방식과 분할 한계를 검토하고, 충분한 성능이 입증되어야 웹의 영상 분석 기능에 연결한다. 모델 점수는 현재 보정된 확률이 아니다.
