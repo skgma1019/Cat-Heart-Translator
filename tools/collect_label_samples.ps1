@@ -1,19 +1,23 @@
-﻿param(
-  [string]$DatasetRoot = 'E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상',
+param(
+  [string]$DatasetRoot = '',
   [string]$OutputDir = (Join-Path $env:USERPROFILE 'Desktop')
 )
 $ErrorActionPreference = 'Stop'
-if (-not (Test-Path -LiteralPath $DatasetRoot -PathType Container)) { throw "Dataset folder not found: $DatasetRoot" }
+if (-not $DatasetRoot -or -not (Test-Path -LiteralPath $DatasetRoot -PathType Container)) { throw "Pass the existing dataset folder with -DatasetRoot. Path: $DatasetRoot" }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $samplesDir = Join-Path $OutputDir "cat-heart-label-samples-$stamp"
 New-Item -ItemType Directory -Path $samplesDir | Out-Null
 $index = @()
-$archives = Get-ChildItem -LiteralPath $DatasetRoot -Recurse -File | Where-Object { $_.Name.StartsWith('[라벨]') -and $_.Extension -ieq '.zip' }
+$labelPrefix = '[' + [char]0xB77C + [char]0xBCA8 + ']'
+$sourcePrefix = '[' + [char]0xC6D0 + [char]0xCC9C + ']'
+$archives = @(Get-ChildItem -LiteralPath $DatasetRoot -Recurse -File | Where-Object { $_.Name.StartsWith($labelPrefix) -and $_.Extension -ieq '.zip' })
+if ($archives.Count -eq 0) { throw "No label ZIP archives found under: $DatasetRoot" }
+Write-Host "Label ZIP archives found: $($archives.Count)"
 foreach ($file in $archives) {
   $animal = $file.Directory.Name
   $split = $file.Directory.Parent.Name
-  if ($animal -eq 'DOG' -and $file.Name -ne '[라벨]BODYLOWER.zip') { continue }
+  if ($animal -eq 'DOG' -and $file.Name -ne ($labelPrefix + 'BODYLOWER.zip')) { continue }
   $class = $file.BaseName.Substring(4)
   $zip = [System.IO.Compression.ZipFile]::OpenRead($file.FullName)
   try {
@@ -35,7 +39,7 @@ foreach ($file in $archives) {
       $index += [pscustomobject]@{ sample = $name; archive = $file.FullName; entry = $entry.FullName; size_bytes = $entry.Length }
     }
   } finally { $zip.Dispose() }
-  $sourcePath = Join-Path $file.DirectoryName ($file.Name.Replace('[라벨]', '[원천]'))
+  $sourcePath = Join-Path $file.DirectoryName ($file.Name.Replace($labelPrefix, $sourcePrefix))
   if (Test-Path -LiteralPath $sourcePath -PathType Leaf) {
     $sourceZip = [System.IO.Compression.ZipFile]::OpenRead($sourcePath)
     try {
@@ -63,6 +67,7 @@ foreach ($file in $archives) {
     } finally { $sourceZip.Dispose() }
   }
 }
+if ($index.Count -eq 0) { throw 'No JSON or JPG samples were copied.' }
 $index | Export-Csv -LiteralPath (Join-Path $samplesDir 'sample_index.csv') -NoTypeInformation -Encoding UTF8
 $destinationZip = Join-Path $OutputDir "cat-heart-label-samples-$stamp.zip"
 Compress-Archive -Path (Join-Path $samplesDir '*') -DestinationPath $destinationZip
