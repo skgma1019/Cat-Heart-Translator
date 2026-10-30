@@ -30,3 +30,17 @@ SVM의 `predict`와 `predict_proba` 순위가 다를 수 있으므로 대표 결
 `mobile/`은 Expo React Native 설치형 앱입니다. 파일 선택·미리 듣기·분석 요청·결과 표시를 구현했습니다. 앱 빌드에는 공개 HTTPS 모델 API가 필요합니다. 로컬 `localhost` API는 휴대폰에서 접근할 수 없습니다.
 
 API를 배포한 뒤 기본 API 주소는 `https://cat-heart-translator-api.onrender.com`입니다. 다른 서버를 사용할 때만 `EXPO_PUBLIC_API_URL`을 지정하여 `cd mobile && npm ci && npm run typecheck`로 확인합니다. APK는 Expo 계정에 로그인한 뒤 `eas build --platform android --profile preview`로 생성합니다. 공개 배포용 AAB는 `--profile production`을 사용합니다. 앱의 서버 주소는 빌드에 포함되므로 API 주소를 바꾸면 재빌드해야 합니다.
+
+## 3회차 웹앱 시연
+
+`frontend/`에서 WAV 업로드 또는 브라우저 마이크 녹음을 선택합니다. 녹음은 브라우저의 `MediaRecorder` 출력(WebM/Opus 등)을 `AudioContext.decodeAudioData()`로 읽고, 모노 16비트 PCM WAV로 변환한 뒤 기존 WAV API에 보냅니다. 마이크 사용은 HTTPS 또는 localhost와 브라우저 권한이 필요합니다. 녹음은 29초에 자동 종료되며, 업로드 제한은 10MB·0.5~30초입니다. 미리 듣기 후 **분석하기**를 누르면 서버가 제공된 `extract_features()`로 88개 특징을 추출하고, 저장된 Pipeline의 `predict_proba()`를 호출합니다. 대표 상황은 최고 추정 확률의 클래스이며 막대그래프의 세 확률과 일치합니다. **다시 분석하기**로 새 입력을 선택할 수 있습니다.
+
+과제의 일반적인 입력 예시에 이미지 업로드가 포함되어 있지만, 이 모델은 오디오 특징 88개만 받아들이므로 이미지 업로드는 제공하지 않습니다. 감정이나 말의 번역, 고양이 울음 여부 판별 기능도 제공하지 않습니다.
+
+시연 영상은 1~2분 동안 서비스 소개 → WAV 파일 선택 또는 마이크 녹음 → 미리 듣기 → 분석 버튼 → 실제 모델 결과와 B/F/I 확률 막대그래프 → 다시 분석하기 순서로 보여주면 됩니다. 영상은 `.mp4`로 녹화하고 용량을 고려해 파일 대신 공유 링크를 제출합니다.
+
+검증 기록: Chromium의 테스트 마이크로 실제 녹음한 출력을 WAV로 변환해 웹 화면에서 분석 결과까지 확인했습니다. 제공된 `B_CAN01_EU_FN_GIA01_208.wav` 업로드는 빗질 90%, 먹이 기다림 8%, 낯선 환경에서 혼자 있음 2%로 표시됐습니다. FastAPI는 빈 파일, 손상 파일, 무음, 0.5초 미만, 30초 초과, 10MB 초과, 잘못된 확장자를 모두 HTTP 400으로 거부했습니다. `npm run typecheck`와 `npm run build`가 통과했습니다. 실제 휴대폰 브라우저의 녹음 권한과 Safari 녹음 형식은 아직 검증하지 못했습니다.
+
+## 제출 영상
+
+[웹앱 시연 영상 다운로드 (.mp4, 67초)](https://github.com/skgma1019/Cat-Heart-Translator/raw/refs/heads/main/demo/webapp-demo.mp4). 브라우저 테스트 마이크 녹음과 데이터셋 WAV 업로드, 미리 듣기, 서버 모델 분석, B/F/I 확률 막대그래프, 다시 분석하기를 보여줍니다. 영상의 마이크 입력은 Chromium 테스트 장치로 만든 녹음이며, 업로드한 WAV는 제공된 데이터셋 파일입니다. 영상 녹화는 자동화된 브라우저에서 진행했고 실제 사용자의 마이크나 휴대폰 브라우저 녹음은 영상에 포함되지 않습니다.
