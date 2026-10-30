@@ -17,3 +17,13 @@ py -3.12 "$env:USERPROFILE\Downloads\audit_cat_labels.py" --root "E:\냥심번�
 ```
 
 출력 `cat-behavior-label-audit.json`에서 CAT 라벨 ZIP 24개와 실패 0건을 확인했다. `file_video` 경로와 기본 이름의 Training/Validation 교집합은 각각 0건이다. 이 스크립트는 원본 ZIP을 읽기만 하며 학습이나 압축 해제를 하지 않는다. 전체 ZIP에 대한 실행은 사용자 Windows에서 수행됐고, 클라우드에서는 결과 보고서만 검토했다. 다음은 현지 `E:` 데이터에서 프레임·라벨 연결 매니페스트와 소규모 학습 파일럿을 검증하는 단계다.
+
+## 프레임·라벨 매니페스트 검사
+
+`tools/build_cat_behavior_manifest.py`는 24개 CAT 원천 ZIP과 대응 라벨 ZIP을 **압축 해제 없이 읽고**, 클립별 프레임 수·타임스탬프·행동 문구·ZIP 경로를 CSV에 기록한다. 각 원천 ZIP에서 JPEG 헤더 1개를 기본 표본 검사한다. 표준 라이브러리만 필요하며 결과는 `Downloads`에 저장한다.
+
+```powershell
+py -3.12 "$env:USERPROFILE\Downloads\build_cat_behavior_manifest.py" --root "E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상"
+```
+
+정상 기대치는 `Clips: 24244; problems: 0`이다. 다운로드 폴더의 `cat-behavior-manifest-report.json`을 공유하면 오류와 예외를 확인할 수 있다. CSV는 현지 학습 입력으로 보관한다. 이 단계는 모든 JPG를 디코딩하지 않으며 ZIP 내부 경로와 표본 헤더만 검증한다. 별도로 제공된 전체 ZIP 내부 목록의 CAT JPG **1,866,408개**가 스크립트의 프레임 파일명 규칙과 맞는 것은 클라우드에서 검증했다.
