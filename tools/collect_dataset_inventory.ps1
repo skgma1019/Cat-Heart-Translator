@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$DatasetRoot = 'E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상',
   [string]$OutputDir = (Join-Path $env:USERPROFILE 'Desktop\cat-heart-dataset-audit')
 )
