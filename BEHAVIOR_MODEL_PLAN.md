@@ -73,3 +73,15 @@ py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_v3.py" --root "E:\냥심
 결과 `Downloads\cat-behavior-v3\cat-behavior-v3-metrics.json`의 정확도, macro F1, 클래스별 재현율과 `crop_stats`를 v2와 비교한다. Validation을 최고 epoch 선택에 사용하므로 개선 수치가 나오더라도 독립 테스트로 재확인해야 한다. 개체 ID 누출 가능성과 시간대별 정답 부재는 그대로 남는다.
 
 사용자가 제공한 v3 지표는 Training 3,480개, Validation 1,104개에서 정확도 **49.55%**, macro F1 **0.4715**였다. v2의 49.46%, 0.4655와 비교하면 각각 **0.09%p**, **0.0060** 증가에 그쳐 실질적인 개선이라고 보기 어렵다. `crop_stats`는 **36,672/36,672 프레임이 박스로 잘렸고 대체 전체 프레임은 0건**임을 보여준다. 박스 미적용이 정체 원인은 아니다. ARCH는 4/23(17.4%)만 맞혔으며 그중 8개를 WALKRUN, 4개를 TAILING으로 예측했다. GETDOWN 31%, LAYDOWN 41%, TAILING 40% 등도 약하다. 정확한 원인을 특정할 증거는 부족하지만, 고정 이미지 인코더의 8프레임 요약만으로 세밀한 **동작의 시간 변화**를 구별하기 어렵고, 클래스 간 유사 동작·일부 장면의 여러 고양이·ARCH의 적은 학습 수가 후보 요인이다. 단순 크롭 반복 실험은 우선하지 않는다. 다음은 제공된 프레임별 키포인트와 바운딩박스의 움직임 특징을 시간 순서대로 검토하거나, 인코더 미세 조정이 가능한지 비교할 단계다.
+
+### 관절 좌표 기반 비교 실험
+
+`tools/train_cat_behavior_pose.py`는 JPG를 읽지 않고 라벨 ZIP의 `annotations`에서 시간순 16프레임을 골라 15개 키포인트의 위치·가시성 및 고양이 박스 위치·크기를 입력으로 사용한다. 관절 위치는 박스 중심·폭·높이를 기준으로 정규화하고, 1D CNN으로 시간 변화 패턴을 학습한다. v2/v3와 동일한 클립 선별(Training 3,480, Validation 1,104)을 사용하므로 입력 표현만 다른 탐색적 비교가 가능하다. 키포인트 누락 건수는 결과 지표에 기록한다. ARCH 실제 JSON의 한 클립으로 입력 차원과 가시성을 확인했다. 전체 24개 ZIP과 GPU 학습은 사용자 PC에서 검증해야 한다.
+
+기존 CUDA PyTorch와 매니페스트를 그대로 사용하며, 원본 데이터는 수정하지 않는다. ZIP의 `train_cat_behavior_pose.py`와 `train_cat_behavior_pilot.py` 두 파일을 다운로드 폴더에 두고 실행한다. JPG를 디코딩하지 않아 앞선 이미지 실험보다 짧을 것으로 예상하지만 ZIP 속도에 따라 **수 분~수십 분** 걸릴 수 있다.
+
+```powershell
+py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_pose.py" --root "E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상" --manifest "$env:USERPROFILE\Downloads\cat-behavior-manifest.csv"
+```
+
+결과는 `Downloads\cat-behavior-pose\cat-behavior-pose-metrics.json`과 체크포인트로 저장된다. Validation으로 epoch를 골랐으므로 독립 테스트가 아니며 개체 누출 한계도 그대로다. 성능이 낮으면 이 표현을 웹앱에 연결하지 않는다.
