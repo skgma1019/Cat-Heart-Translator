@@ -1,5 +1,5 @@
 /** Decode the browser recording, then encode mono PCM WAV for the WAV-only API. */
-export async function recordingToWav(chunks: BlobPart[], mimeType: string): Promise<File> {
+export async function recordingToWav(chunks: BlobPart[], mimeType: string, filename = '마이크-녹음.wav'): Promise<File> {
   const context = new AudioContext();
   try {
     const decoded = await context.decodeAudioData(await new Blob(chunks, { type: mimeType }).arrayBuffer());
@@ -22,6 +22,6 @@ export async function recordingToWav(chunks: BlobPart[], mimeType: string): Prom
       const sample = Math.max(-1, Math.min(1, samples[i]));
       view.setInt16(44 + i * 2, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
     }
-    return new File([buffer], '마이크-녹음.wav', { type: 'audio/wav' });
+    return new File([buffer], filename, { type: 'audio/wav' });
   } finally { await context.close(); }
 }

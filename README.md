@@ -46,3 +46,5 @@ API를 배포한 뒤 기본 API 주소는 `https://cat-heart-translator-api.onre
 [웹앱 시연 영상 다운로드 (.mp4, 67초)](https://github.com/skgma1019/Cat-Heart-Translator/raw/refs/heads/main/demo/webapp-demo.mp4). 브라우저 테스트 마이크 녹음과 데이터셋 WAV 업로드, 미리 듣기, 서버 모델 분석, B/F/I 확률 막대그래프, 다시 분석하기를 보여줍니다. 영상의 마이크 입력은 Chromium 테스트 장치로 만든 녹음이며, 업로드한 WAV는 제공된 데이터셋 파일입니다. 영상 녹화는 자동화된 브라우저에서 진행했고 실제 사용자의 마이크나 휴대폰 브라우저 녹음은 영상에 포함되지 않습니다.
 
 MP3 추가 검증: 데이터셋 WAV를 MP3로 인코딩해 API 분석 HTTP 200과 결과 출력을 확인했습니다. WAV를 `.mp3`로 이름만 바꾼 파일은 HTTP 400으로 거부합니다. MP3는 손실 압축이므로 같은 원본 WAV와 모델 추정 확률이 달라질 수 있습니다.
+
+웹앱의 MP3 파일은 브라우저에서 디코딩해 모노 PCM WAV로 변환한 뒤 API에 전송합니다. 따라서 Render API가 아직 WAV 전용 구버전이어도 웹 MP3 업로드가 동작합니다. 브라우저에서 MP3를 디코딩할 수 없으면 오류를 표시합니다.

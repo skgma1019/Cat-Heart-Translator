@@ -60,11 +60,18 @@ export default function Home() {
   function stopRecording() { if (recorder.current?.state === 'recording') recorder.current.stop(); }
   async function analyze() {
     if (!file) return; setLoading(true); setError('');
-    const body = new FormData(); body.append('file', file);
+    const body = new FormData();
     try {
+      let upload = file;
+      if (/\.mp3$/i.test(file.name)) {
+        try { upload = await recordingToWav([file], 'audio/mpeg', file.name.replace(/\.mp3$/i, '.wav')); }
+        catch { throw new Error('MP3 파일을 읽을 수 없습니다. 파일이 손상됐는지 확인해 주세요.'); }
+      }
+      if (upload.size > 10 * 1024 * 1024) throw new Error('변환된 오디오가 10MB를 초과합니다. 더 짧은 파일을 선택해 주세요.');
+      body.append('file', upload);
       const response = await fetch('/api/analyze', { method: 'POST', body }); const data = await response.json();
       if (!response.ok) throw new Error(data.detail || '분석에 실패했습니다.'); setResult(data);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : '서버 오류가 발생했습니다.'); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'MP3 변환 또는 서버 연결 중 오류가 발생했습니다.'); }
     finally { setLoading(false); }
   }
   return <main className="mx-auto max-w-3xl px-5 py-12 sm:py-20">
