@@ -71,3 +71,5 @@ Training과 Validation에서 정확히 같은 클립 폴더 이름의 교집합�
 - ARCH 외 11개 CAT 코드와 Validation의 실제 라벨 JSON, DOG의 종 식별 JSON. 현재 ARCH Training만 확인했다.
 - 데이터 설명서/라벨 정의서: 코드의 정확한 의미와 개체·촬영·원본 영상 ID 필드 확인.
 - 샘플 프레임 이미지 몇 장: 목록상 프레임 번호·타임스탬프는 ARCH에서 전수 대응했으나 이미지 내용 자체는 미확인이다.
+
+4060 Laptop 환경의 학습 후보, 누출 점검 순서, ZIP을 옮기지 않는 라벨 전수 검사 방법은 [BEHAVIOR_MODEL_PLAN.md](BEHAVIOR_MODEL_PLAN.md)에 정리했다. 전수 라벨 검사 결과가 나오기 전까지는 행동 모델을 학습하지 않는다.
