@@ -46,7 +46,7 @@ def home():
 
 @app.get('/health')
 def health():
-    return {'status': 'ok', 'features': model.n_features_in_, 'classes': list(model.classes_)}
+    return {'status': 'ok', 'features': model.n_features_in_, 'classes': list(model.classes_), 'max_duration_seconds': 60, 'accepted_formats': ['WAV', 'MP3']}
 
 @app.post('/analyze')
 async def analyze(file: UploadFile = File(...)):
@@ -65,8 +65,8 @@ async def analyze(file: UploadFile = File(...)):
         info = sf.info(path)
         if info.format != {'.wav': 'WAV', '.mp3': 'MP3'}[suffix]:
             raise HTTPException(400, '파일 확장자와 실제 오디오 형식이 일치하지 않습니다.')
-        if info.duration < 0.5 or info.duration > 30:
-            raise HTTPException(400, '녹음 길이는 0.5~30초여야 합니다.')
+        if info.duration < 0.5 or info.duration > 60:
+            raise HTTPException(400, '녹음 길이는 0.5~60초여야 합니다.')
         audio, _ = sf.read(path, dtype='float32')
         if not np.isfinite(audio).all() or np.max(np.abs(audio)) < 0.0001:
             raise HTTPException(400, '무음 파일은 분석할 수 없습니다.')
