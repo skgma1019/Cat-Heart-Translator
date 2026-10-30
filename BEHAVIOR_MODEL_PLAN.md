@@ -59,3 +59,5 @@ py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_v2.py" --root "E:\냥심
 RTX 4060 Laptop에서 ZIP 읽기·이미지 디코딩에 **수십 분에서 몇 시간**이 걸릴 수 있다. 실제 소요 시간은 SSD/HDD 속도와 전원 상태에 좌우된다. 결과는 `Downloads\cat-behavior-v2\cat-behavior-v2-metrics.json`에 기록된다. 클라우드에는 원본 데이터와 CUDA GPU가 없어 전체 실험을 실행하지 못했고 Python 문법 및 헬퍼 검사까지만 했다. 성능이 개선되어도 영상 업로드·시간대별 추론으로 바로 공개하지 않는다.
 
 사용자가 제공한 두 번째 실험 지표는 Training **3,480개**, Validation **1,104개**, 최고 epoch 5에서 **정확도 49.46%, macro F1 0.4655**였다. 첫 파일럿(37.39%, 0.3702)보다 각각 약 **12.1%p**, **0.095** 높다. 그러나 검증 샘플 수가 달라 직접적인 동등 조건 비교는 아니다. ARCH 재현율은 3/23(13.0%)로 크게 낮고 GETDOWN 33%, LAYDOWN 31% 등도 약하다. 이 지표는 Validation으로 epoch를 고른 결과라 독립 테스트 성능도 아니다. 현 모델을 웹앱에 연결하지 않는다. 다음 모델 실험은 ARCH의 과소표본·혼동을 중심으로 오류 샘플을 확인하고, 더 많은 학습 데이터와 개체 누출을 줄일 분할 정보가 있는지 조사한 뒤 설계한다.
+
+`tools/review_cat_behavior_errors.py`는 저장된 v2 체크포인트와 Validation 특징 캐시로 오분류를 다시 계산하고, 코드마다 오분류 2개씩의 원본 프레임 3장을 읽어 `cat-behavior-v2-error-sheet.png`를 만든다. 전체 재학습이나 ZIP 압축 해제는 없다. 동시에 `cat-behavior-v2-errors.csv`와 `cat-behavior-v2-error-report.json`을 만든다. 실행에 몇 분 정도 예상하며 원본을 수정하지 않는다. 검토용 이미지와 보고서를 받은 뒤 오분류 원인을 확인한다.
