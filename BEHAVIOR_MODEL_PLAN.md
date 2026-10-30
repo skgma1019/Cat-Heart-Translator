@@ -61,3 +61,13 @@ RTX 4060 Laptop에서 ZIP 읽기·이미지 디코딩에 **수십 분에서 몇 
 사용자가 제공한 두 번째 실험 지표는 Training **3,480개**, Validation **1,104개**, 최고 epoch 5에서 **정확도 49.46%, macro F1 0.4655**였다. 첫 파일럿(37.39%, 0.3702)보다 각각 약 **12.1%p**, **0.095** 높다. 그러나 검증 샘플 수가 달라 직접적인 동등 조건 비교는 아니다. ARCH 재현율은 3/23(13.0%)로 크게 낮고 GETDOWN 33%, LAYDOWN 31% 등도 약하다. 이 지표는 Validation으로 epoch를 고른 결과라 독립 테스트 성능도 아니다. 현 모델을 웹앱에 연결하지 않는다. 다음 모델 실험은 ARCH의 과소표본·혼동을 중심으로 오류 샘플을 확인하고, 더 많은 학습 데이터와 개체 누출을 줄일 분할 정보가 있는지 조사한 뒤 설계한다.
 
 `tools/review_cat_behavior_errors.py`는 저장된 v2 체크포인트와 Validation 특징 캐시로 오분류를 다시 계산하고, 코드마다 오분류 2개씩의 원본 프레임 3장을 읽어 `cat-behavior-v2-error-sheet.png`를 만든다. 전체 재학습이나 ZIP 압축 해제는 없다. 동시에 `cat-behavior-v2-errors.csv`와 `cat-behavior-v2-error-report.json`을 만든다. 실행에 몇 분 정도 예상하며 원본을 수정하지 않는다. 검토용 이미지와 보고서를 받은 뒤 오분류 원인을 확인한다.
+
+사용자가 제공한 오분류 접촉 시트에는 고양이가 원본 전체 프레임에서 작거나 멀리 보이는 사례와 여러 마리가 함께 보이는 사례가 있다. 이것만으로 오분류 원인을 확정할 수는 없지만, 전체 프레임 축소가 행동 특징을 희석할 가능성을 시험할 근거가 된다. ARCH JSON 표본에서 프레임별 `bounding_box` 17,182개는 모두 유효한 좌표였다. `tools/train_cat_behavior_v3.py`는 **v2와 동일한 클립 선택·모델 구조·학습 설정**을 사용하되, JSON의 프레임 번호·타임스탬프에 대응하는 고양이 박스로 이미지를 15% 여백 포함해 자른 후 인코딩한다. 박스가 없거나 유효하지 않으면 전체 프레임을 사용하고 이 건수를 지표에 기록한다. 원본 이미지 크기와 `metadata.width/height`가 다르면 박스를 비례 조정한다. 실제 JPG의 박스 정확성은 사용자 PC에서 확인해야 한다.
+
+v3는 별도의 `Downloads\cat-behavior-v3`에 특징 캐시·체크포인트·지표를 저장하므로 v2 결과를 덮지 않는다. 이미지 특징을 **다시** 추출해야 해 수십 분에서 몇 시간 걸릴 수 있다. 다운로드 ZIP의 `train_cat_behavior_v3.py`와 `train_cat_behavior_pilot.py`를 다운로드 폴더에 두고 실행한다.
+
+```powershell
+py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_v3.py" --root "E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상" --manifest "$env:USERPROFILE\Downloads\cat-behavior-manifest.csv"
+```
+
+결과 `Downloads\cat-behavior-v3\cat-behavior-v3-metrics.json`의 정확도, macro F1, 클래스별 재현율과 `crop_stats`를 v2와 비교한다. Validation을 최고 epoch 선택에 사용하므로 개선 수치가 나오더라도 독립 테스트로 재확인해야 한다. 개체 ID 누출 가능성과 시간대별 정답 부재는 그대로 남는다.
