@@ -45,3 +45,15 @@ py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_pilot.py" --root "E:\냥
 사용자가 RTX 4060 Laptop에서 CUDA PyTorch `2.5.1+cu121`로 학습을 완료하고 `cat-behavior-pilot-metrics.json`을 제공했다. Training 1,200개, Validation 353개, 클립당 8프레임 조건에서 **정확도 37.39%, macro F1 0.3702**였다. Validation에서 ARCH는 23개, 나머지 코드는 각 30개다. 12종 균등 무작위 기준 8.33%보다는 높지만, 12종 행동 분석을 사용자에게 제공하기에는 오류가 많다. 특히 ARMSTRETCH 재현율 23.3%, GETDOWN/LAYDOWN 26.7%, GROOMING/SITDOWN 30.0%였다. 가장 높은 ROLL도 56.7%다. 이 체크포인트를 웹 API에 연결하거나 확률 그래프로 공개하지 않는다.
 
 다음 실험에서는 더 많은 학습 클립을 사용하고, 프레임 특징의 단순 평균이 놓치는 움직임 순서를 보존하는 시간 모델을 비교해야 한다. 현재 데이터는 클립 단위 라벨이므로 시간 구간별 정답과 일반 영상에 대한 성능은 별도로 검증해야 한다. 같은 고양이가 두 분할에 섞였는지도 여전히 알 수 없다. 학습 과정에서 프레임 자체의 품질·중복·클래스 혼동을 표본 검토하고, 데이터 설명서가 있다면 공식 분할 기준을 먼저 대조한다.
+
+### 두 번째 실험: 더 많은 클립과 시간 변화 특징
+
+`tools/train_cat_behavior_v2.py`를 준비했다. 기본값은 코드당 Training 최대 300개(전체 3,480개), Validation 최대 100개(전체 1,123개), 클립당 8프레임이다. MobileNetV3 Small의 프레임 특징에서 평균·표준편차·첫-마지막 차이·연속 프레임 절대 차이를 이어 붙여 작은 MLP를 학습한다. 프레임 순서 정보를 일부 반영하지만 완전한 영상 모델은 아니다. 검증 macro F1로 최고 epoch를 고르며, 이 Validation 수치는 독립 테스트 성능으로 해석할 수 없다. ZIP별 추출 특징은 `Downloads\cat-behavior-v2\feature-cache`에 저장되어 중단 후 재실행 시 재사용된다. 원본 ZIP은 수정하지 않는다.
+
+기존 CUDA PyTorch, Pillow, NumPy 설치와 매니페스트 CSV를 그대로 사용한다. 압축 파일에는 `train_cat_behavior_v2.py`와 의존 파일 `train_cat_behavior_pilot.py` 두 개가 있으며 둘 다 `Downloads`에 둔다. 데이터가 연결된 드라이브 문자를 먼저 확인한 뒤 실행한다.
+
+```powershell
+py -3.12 "$env:USERPROFILE\Downloads\train_cat_behavior_v2.py" --root "E:\냥심번역기 데이터셋\반려동물 구분을 위한 동물 영상" --manifest "$env:USERPROFILE\Downloads\cat-behavior-manifest.csv"
+```
+
+RTX 4060 Laptop에서 ZIP 읽기·이미지 디코딩에 **수십 분에서 몇 시간**이 걸릴 수 있다. 실제 소요 시간은 SSD/HDD 속도와 전원 상태에 좌우된다. 결과는 `Downloads\cat-behavior-v2\cat-behavior-v2-metrics.json`에 기록된다. 클라우드에는 원본 데이터와 CUDA GPU가 없어 전체 실험을 실행하지 못했고 Python 문법 및 헬퍼 검사까지만 했다. 성능이 개선되어도 영상 업로드·시간대별 추론으로 바로 공개하지 않는다.
